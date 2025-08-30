@@ -40,11 +40,15 @@ void lerFormulario(funcionario *f)
     fgets(temp_senha, sizeof(temp_senha), stdin);
     temp_senha[strcspn(temp_senha, "\n")] = '\0';
     f->senha = atoi(temp_senha);
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+    
 
     printf("Informe sua idade:\n>>> ");
     fgets(temp_idade, sizeof(temp_idade), stdin);
     temp_idade[strcspn(temp_idade, "\n")] = '\0';
     f->idade = atoi(temp_idade);
+    while ((c = getchar()) != '\n' && c != EOF);
 
     printf("Informe seu cargo:\n>>> ");
     fgets(f->cargo, sizeof(f->cargo), stdin);
@@ -75,11 +79,11 @@ int validarLogin(funcionario *lista, int usuarios)
     limparBufferEntrada();
 
     printf("\n============= Login =============\n");
-    printf("Informe o email de usuario:\n>>>");
+    printf("Informe o email de usuario:\n>>> ");
     fgets(login_email, sizeof(login_email), stdin);
     login_email[strcspn(login_email, "\n")] = '\0';
 
-    printf("Informe o pin de usuario:\n>>>");
+    printf("Informe o pin de usuario:\n>>> ");
     fgets(login_senha, sizeof(login_senha), stdin);
     login_senha[strcspn(login_senha, "\n")] = '\0';
     login_pin = atoi(login_senha);
@@ -165,7 +169,6 @@ void pausarTerminal()
     printf("\nPressione ENTER para continuar...");
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
-    getchar();
 }
 
 int main(void)
@@ -187,13 +190,13 @@ int main(void)
 
     do
     {
-        printf("\n--- MENU DE OPÇÕES ---\n");
-        printf("1. Cadastrar novos funcionarios\n");
-        printf("2. Salvar funcionarios\n");
-        printf("3. Carregar funcionarios\n");
-        printf("4. Exibir funcionarios\n");
-        printf("5. Login\n");
-        printf("6. Sair\n");
+        printf("\n--------- MENU DE OPÇÕES ---------\n");
+        printf(" [1] Cadastrar novos funcionarios\n");
+        printf(" [2] Salvar funcionarios\n");
+        printf(" [3] Carregar funcionarios\n");
+        printf(" [4] Exibir funcionarios\n");
+        printf(" [5] Login\n");
+        printf(" [6] Sair\n");
         printf("Escolha uma opção: ");
 
         fgets(opcao_str, sizeof(opcao_str), stdin);
