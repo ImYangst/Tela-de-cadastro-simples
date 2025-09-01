@@ -48,7 +48,6 @@ void lerFormulario(funcionario *f)
     fgets(temp_idade, sizeof(temp_idade), stdin);
     temp_idade[strcspn(temp_idade, "\n")] = '\0';
     f->idade = atoi(temp_idade);
-    while ((c = getchar()) != '\n' && c != EOF);
 
     printf("Informe seu cargo:\n>>> ");
     fgets(f->cargo, sizeof(f->cargo), stdin);
