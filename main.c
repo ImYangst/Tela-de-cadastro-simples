@@ -37,22 +37,28 @@ void registrarCarro(carro *cs)
 {
     char temp_ano[10];
 
-    printf("Informe o modelo de seu veículo:\n>>>");
+    printf("Informe o modelo de seu veiculo:\n>>> ");
     fgets(cs->Modelo, sizeof(cs->Modelo), stdin);
     cs->Modelo[strcspn(cs->Modelo, "\n")] = '\0';
 
-    printf("Informe o ano de seu veículo:\n>>>");
+    printf("Informe o ano de seu veiculo:\n>>> ");
     fgets(temp_ano, sizeof(temp_ano), stdin);
     temp_ano[strcspn(temp_ano, "\n")] = '\0';
     cs->ano = atoi(temp_ano);
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-        ;
+    limparBufferEntrada();
+
+    printf("Informe a cor do seu veículo:\n>>> ");
+    fgets(cs->cor, sizeof(cs->cor), stdin);
+    cs->cor[strcspn(cs->cor, "\n")] = '\0';
+
+    printf("Informe o problema do seu veículo:\n>>> ");
+    fgets(cs->problema, sizeof(cs->problema), stdin);
+    cs->problema[strcspn(cs->problema, "\n")] = '\0';
 }
 
 void exibirCarros(carro *cs2)
 {
-    printf("\n=========== informações ===========\n");
+    printf("\n=========== informacoes ===========\n");
     printf("Modelo:%s\n", cs2->Modelo);
     printf("Ano: %d\n", cs2->ano);
     printf("Cor: %s\n", cs2->cor);
@@ -71,7 +77,7 @@ void salvarCarros(carro *lista, int num_carros, const char *carros)
         return;
     }
 
-    fprint(arquivo, "%d\n", num_carros);
+    fprintf(arquivo, "%d\n", num_carros);
     for (i = 0; i < num_carros; i++)
     {
         fprintf(arquivo, "%s,%d,%s,%s", lista[i].Modelo, lista[i].ano, lista[i].cor, lista[i].problema);
@@ -102,7 +108,7 @@ int carregarCarros(carro **lista, const char *carros)
         return 0;
     }
 
-    *lista = (carro *)malloc(CarrosArquivados * sizeof(carros));
+    *lista = (carro *)malloc(CarrosArquivados * sizeof(carro));
     if (*lista == NULL)
     {
         fclose(arquivo);
@@ -266,58 +272,72 @@ int carregarfuncionarios(funcionario **lista, const char *funcionarios)
 void pausarTerminal()
 {
     printf("\nPressione ENTER para continuar...");
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-        ;
+    limparBufferEntrada();
 }
 
 int main(void)
 {
     int funcionarios = 0;
     int carros = 0;
-    int opcao;
+    int opcao_func; 
+    int opcao_carro; 
     int access;
-    char opcao_str[10];
     char access_str[10];
-    funcionario *lista = NULL;
 
-    funcionarios = carregarfuncionarios(&lista, "funcionarios.txt");
+    funcionario *lista_funcionarios = NULL; 
+    carro *lista_carros = NULL; 
+
+    funcionarios = carregarfuncionarios(&lista_funcionarios, "funcionarios.txt");
     if (funcionarios > 0)
     {
         printf("%d funcionarios carregados com sucesso do arquivo.\n", funcionarios);
     }
     else
     {
-        printf("Nenhum funcionario carregado. Iniciando com lista vazia. \n");
+        printf("Nenhum funcionario carregado. Iniciando com lista vazia.\n");
+    }
+
+    carros = carregarCarros(&lista_carros, "carros.txt");
+    if (carros > 0)
+    {
+        printf("%d carros carregados com sucesso do arquivo.\n", carros);
+    }
+    else
+    {
+        printf("Nenhum carro carregado. Iniciando com lista vazia.\n");
     }
 
     do
     {
         printf("\n--------- MENU DE ENTRADA ---------\n");
-        printf(" [1] Funcionário.");
-        printf(" [2] Cliente.");
-        printf(" [3] Sair.");
+        printf(" [1] Funcionario.\n");
+        printf(" [2] Cliente.\n");
+        printf(" [3] Sair.\n");
+        printf("Escolha uma opcao: ");
 
+        fgets(access_str, sizeof(access_str), stdin);
+        access_str[strcspn(access_str, "\n")] = '\0';
+        access = atoi(access_str);
         switch (access)
         {
-
         case 1:
             do
             {
-                printf("\n--------- MENU DE OPÇÕES ---------\n");
+                printf("\n--------- MENU DE OPCOES ---------\n");
                 printf(" [1] Cadastrar novos funcionarios\n");
                 printf(" [2] Salvar funcionarios\n");
                 printf(" [3] Carregar funcionarios\n");
                 printf(" [4] Exibir funcionarios\n");
                 printf(" [5] Login\n");
                 printf(" [6] Sair\n");
-                printf("Escolha uma opção: ");
+                printf("Escolha uma opcao: ");
 
+                char opcao_str[10];
                 fgets(opcao_str, sizeof(opcao_str), stdin);
                 opcao_str[strcspn(opcao_str, "\n")] = '\0';
-                opcao = atoi(opcao_str);
+                opcao_func = atoi(opcao_str);
 
-                switch (opcao)
+                switch (opcao_func)
                 {
                 case 1:
                     printf("Informe a quantidade de funcionarios a serem cadastrados:\n>>> ");
@@ -332,29 +352,29 @@ int main(void)
                         break;
                     }
 
-                    funcionario *temp = (funcionario *)realloc(lista, (funcionarios + novos_funcionarios) * sizeof(funcionario));
+                    funcionario *temp_func = (funcionario *)realloc(lista_funcionarios, (funcionarios + novos_funcionarios) * sizeof(funcionario));
 
-                    if (temp == NULL)
+                    if (temp_func == NULL)
                     {
-                        printf("Erro ao realocar memória. Não foi possível adicionar novos funcionarios.\n");
+                        printf("Erro ao realocar memoria. Nao foi possivel adicionar novos funcionarios.\n");
                     }
                     else
                     {
-                        lista = temp;
+                        lista_funcionarios = temp_func;
                         limparBufferEntrada();
                         for (int i = 0; i < novos_funcionarios; i++)
                         {
                             printf("\nCadastrando funcionario %d:\n", funcionarios + i + 1);
-                            lerFormulario(&lista[funcionarios + i]);
+                            lerFormulario(&lista_funcionarios[funcionarios + i]);
                         }
                         funcionarios += novos_funcionarios;
                         printf("Funcionarios cadastrados com sucesso!\n");
                     }
                     break;
                 case 2:
-                    if (lista != NULL && funcionarios > 0)
+                    if (lista_funcionarios != NULL && funcionarios > 0)
                     {
-                        salvarFuncionarios(lista, funcionarios, "funcionarios.txt");
+                        salvarFuncionarios(lista_funcionarios, funcionarios, "funcionarios.txt");
                         printf("Dados salvos com sucesso!\n");
                         pausarTerminal();
                     }
@@ -365,12 +385,12 @@ int main(void)
                     }
                     break;
                 case 3:
-                    if (lista != NULL)
+                    if (lista_funcionarios != NULL)
                     {
-                        free(lista);
-                        lista = NULL;
+                        free(lista_funcionarios);
+                        lista_funcionarios = NULL;
                     }
-                    funcionarios = carregarfuncionarios(&lista, "funcionarios.txt");
+                    funcionarios = carregarfuncionarios(&lista_funcionarios, "funcionarios.txt");
                     if (funcionarios > 0)
                     {
                         printf("%d funcionarios carregados com sucesso!\n", funcionarios);
@@ -378,16 +398,16 @@ int main(void)
                     }
                     else
                     {
-                        printf("Erro ao carregar os dados ou arquivo não encontrado.\n");
+                        printf("Erro ao carregar os dados ou arquivo nao encontrado.\n");
                         pausarTerminal();
                     }
                     break;
                 case 4:
-                    if (lista != NULL && funcionarios > 0)
+                    if (lista_funcionarios != NULL && funcionarios > 0)
                     {
                         for (int i = 0; i < funcionarios; i++)
                         {
-                            mostrarFuncionarios(&lista[i]);
+                            mostrarFuncionarios(&lista_funcionarios[i]);
                         }
                         pausarTerminal();
                     }
@@ -398,9 +418,9 @@ int main(void)
                     }
                     break;
                 case 5:
-                    if (lista != NULL && funcionarios > 0)
+                    if (lista_funcionarios != NULL && funcionarios > 0)
                     {
-                        int login_status = validarLogin(lista, funcionarios);
+                        int login_status = validarLogin(lista_funcionarios, funcionarios);
                         if (login_status == 1)
                         {
                             printf("Login bem sucedido!\n");
@@ -419,89 +439,136 @@ int main(void)
                     }
                     break;
                 case 6:
-                    if (lista != NULL)
-                    {
-                        free(lista);
-                    }
-                    printf("Saindo do programa...\n");
+                    printf("Saindo do menu de funcionarios...\n");
                     break;
                 default:
                     printf("Opcao invalida. Tente novamente!\n");
                     break;
                 }
-               
-            } while (opcao != 6);
-            case 2:
-                do
+            } while (opcao_func != 6);
+            break;
+        case 2:
+            do
+            {
+                printf("\n--------- MENU DE OPCOES ---------\n");
+                printf(" [1] Registrar veiculos\n");
+                printf(" [2] Salvar veiculos\n");
+                printf(" [3] Carregar veiculos\n");
+                printf(" [4] Exibir veiculos\n");
+                printf(" [5] Sair\n");
+                printf("Escolha uma opcao: ");
+
+                char opcao_str[10];
+                fgets(opcao_str, sizeof(opcao_str), stdin);
+                opcao_str[strcspn(opcao_str, "\n")] = '\0';
+                opcao_carro = atoi(opcao_str);
+
+                switch (opcao_carro)
                 {
-                    printf("\n--------- MENU DE OPÇÕES ---------\n");
-                    printf(" [1] Registrar veículos\n");
-                    printf(" [2] Salvar veículos\n");
-                    printf(" [3] Carregar veículos\n");
-                    printf(" [4] Exibir veículos\n");
-                    printf(" [5] Sair\n");
-                    printf("Escolha uma opção: ");
+                case 1:
+                    printf("Informe o numero de veiculos que deseja registrar:\n>>> ");
+                    char temp_carros[10];
+                    fgets(temp_carros, sizeof(temp_carros), stdin);
+                    temp_carros[strcspn(temp_carros, "\n")] = '\0';
+                    int novos_carros = atoi(temp_carros);
 
-                    switch (opcao)
+                    if (novos_carros <= 0)
                     {
-                    case 1:
-                        printf("Informe o número de veículos que deseja registrar:\n>>> ");
-                        char temp_carros[10];
-                        fgets(temp_carros, sizeof(temp_carros), stdin);
-                        temp_carros[strcspn(temp_carros, "\n")] = '\0';
-                        int novos_carros = atoi(temp_carros);
-
-                        if (novos_carros <= 0){
-                            printf("Nenhuma carro para ser registrado.\n");
-                            break;
-                        }
-
-                        carro *temp = (carro *)realloc(lista, (carros + novos_carros) * sizeof(carro));
-
-                        if(temp == NULL){
-                            printf("Erro ao realocar memória. Não foi possível registrar novos carros.\n");
-                        } else {
-                            lista = temp;
-                            limparBufferEntrada();
-                            for (int i = 0; i < novos_carros; i++)
-                            {
-                                printf("\nCadastrando carro %d:\n", carros + i + 1);
-                                registrarCarro(&lista[carros + i]);
-                            }
-                            carros += novos_carros;
-                            printf("Carros registrados com sucesso!\n");
-                            
-                        }
-                        break;
-                    case 2:
-                        if(lista != NULL && carros > 0){
-                            salvarCarros(lista, carros, "carros.txt");
-                            printf("Dados salvos com sucesso!\n");
-                            pausarTerminal();
-                        }else {
-                            printf("Nenhum carros para salvar.\n");
-                            pausarTerminal();
-                        }
-                        break;
-                    case 3:
-                        if (lista != NULL){
-                            free(lista);
-                            lista = NULL;
-                        }
-                        carros = carregarCarros(&lista, "carros.txt");
-                        if (carros > 0)
-                        {
-                            printf("%d carros carregados com sucesso!\n", carros);
-                            pausarTerminal();
-                        }else {
-                            printf("Erro ao carregar dados ou arquivo não encontrado.\n");
-                        }
-                        
-                    default:
+                        printf("Nenhuma carro para ser registrado.\n");
                         break;
                     }
-                }while (opcao != 5);
-            }
-        }while (access != 3);
-        return 0;
+
+                    carro *temp_carro = (carro *)realloc(lista_carros, (carros + novos_carros) * sizeof(carro));
+
+                    if (temp_carro == NULL)
+                    {
+                        printf("Erro ao realocar memoria. Nao foi possivel registrar novos carros.\n");
+                    }
+                    else
+                    {
+                        lista_carros = temp_carro;
+                        limparBufferEntrada();
+                        for (int i = 0; i < novos_carros; i++)
+                        {
+                            printf("\nCadastrando carro %d:\n", carros + i + 1);
+                            registrarCarro(&lista_carros[carros + i]);
+                        }
+                        carros += novos_carros;
+                        printf("Carros registrados com sucesso!\n");
+                    }
+                    break;
+                case 2:
+                    if (lista_carros != NULL && carros > 0)
+                    {
+                        salvarCarros(lista_carros, carros, "carros.txt");
+                        printf("Dados salvos com sucesso!\n");
+                        pausarTerminal();
+                    }
+                    else
+                    {
+                        printf("Nenhum carros para salvar.\n");
+                        pausarTerminal();
+                    }
+                    break;
+                case 3:
+                    if (lista_carros != NULL)
+                    {
+                        free(lista_carros);
+                        lista_carros = NULL;
+                    }
+                    carros = carregarCarros(&lista_carros, "carros.txt");
+                    if (carros > 0)
+                    {
+                        printf("%d carros carregados com sucesso!\n", carros);
+                        pausarTerminal();
+                    }
+                    else
+                    {
+                        printf("Erro ao carregar dados ou arquivo nao encontrado.\n");
+                        pausarTerminal();
+                    }
+                    break;
+                case 4:
+                    if (lista_carros != NULL && carros > 0)
+                    {
+                        for (int i = 0; i < carros; i++)
+                        {
+                            exibirCarros(&lista_carros[i]);
+                        }
+                        pausarTerminal();
+                    }
+                    else
+                    {
+                        printf("Nenhum carro registrado para ser exibido.\n");
+                        pausarTerminal();
+                    }
+                    break;
+                case 5:
+                    printf("Saindo do menu de clientes...\n");
+                    break;
+                default:
+                    printf("Opcao invalida. Tente novamente!\n");
+                    break;
+                }
+            } while (opcao_carro != 5);
+            break;
+        case 3:
+            printf("Saindo do programa...\n");
+            break;
+        default:
+            printf("Opcao invalida. Tente novamente!\n");
+            break;
+        }
+    } while (access != 3);
+
+    if (lista_funcionarios != NULL)
+    {
+        free(lista_funcionarios);
     }
+    if (lista_carros != NULL)
+    {
+        free(lista_carros);
+    }
+
+    return 0;
+}
