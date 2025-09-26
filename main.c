@@ -1,37 +1,21 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "database.h"
+#include <sqlite3.h> 
 
-typedef struct Funcionarios
+void limparBufferEntrada()
 {
-    char nome[50];
-    int senha;
-    int idade;
-    char cargo[50];
-    char email[50];
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+        ;
+}
 
-} funcionario;
-
-typedef struct Carros
+void pausarTerminal()
 {
-    char Modelo[50];
-    int ano;
-    char cor[20];
-    char problema[100];
-
-} carro;
-
-void pausarTerminal();
-void limparBufferEntrada();
-void exibirCarros(carro *cs2);
-void registrarCarro(carro *cs);
-void salvarCarros(carro *lista, int num_carros, const char *carros);
-int carregarCarros(carro **lista, const char *carros);
-void lerFormulario(funcionario *f);
-void mostrarFuncionarios(funcionario *f2);
-int validarLogin(funcionario *lista, int usuarios);
-int carregarfuncionarios(funcionario **lista, const char *funcionarios);
-void salvarFuncionarios(funcionario *lista, int num_usuarios, const char *funcionarios);
+    printf("\nPressione ENTER para continuar...");
+    limparBufferEntrada();
+}
 
 void registrarCarro(carro *cs)
 {
@@ -63,75 +47,6 @@ void exibirCarros(carro *cs2)
     printf("Ano: %d\n", cs2->ano);
     printf("Cor: %s\n", cs2->cor);
     printf("Problema: %s\n", cs2->problema);
-}
-
-void salvarCarros(carro *lista, int num_carros, const char *carros)
-{
-    FILE *arquivo;
-    int i;
-    arquivo = fopen(carros, "w");
-
-    if (arquivo == NULL)
-    {
-        perror("Erro ao abrir o arquivo");
-        return;
-    }
-
-    fprintf(arquivo, "%d\n", num_carros);
-    for (i = 0; i < num_carros; i++)
-    {
-        fprintf(arquivo, "%s,%d,%s,%s", lista[i].Modelo, lista[i].ano, lista[i].cor, lista[i].problema);
-    }
-    fclose(arquivo);
-}
-
-int carregarCarros(carro **lista, const char *carros)
-{
-    FILE *arquivo;
-    int CarrosArquivados = 0;
-    arquivo = fopen(carros, "r");
-
-    if (arquivo == NULL)
-    {
-        return 0;
-    }
-
-    if (fscanf(arquivo, "%d\n", &CarrosArquivados) != 1)
-    {
-        fclose(arquivo);
-        return 0;
-    }
-
-    if (CarrosArquivados <= 0)
-    {
-        fclose(arquivo);
-        return 0;
-    }
-
-    *lista = (carro *)malloc(CarrosArquivados * sizeof(carro));
-    if (*lista == NULL)
-    {
-        fclose(arquivo);
-        return 0;
-    }
-
-    for (int i = 0; i < CarrosArquivados; i++)
-    {
-        if (fscanf(arquivo, "%[^,],%d,%[^,],%[^\n]\n", (*lista)[i].Modelo, &(*lista)[i].ano, (*lista)[i].cor, (*lista)[i].problema) != 4)
-        {
-            CarrosArquivados = i;
-            break;
-        }
-    }
-    fclose(arquivo);
-    return CarrosArquivados;
-}
-
-void limparBufferEntrada()
-{
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-        ;
 }
 
 void lerFormulario(funcionario *f)
@@ -207,73 +122,6 @@ int validarLogin(funcionario *lista, int usuarios)
     return sucess;
 }
 
-void salvarFuncionarios(funcionario *lista, int num_usuarios, const char *funcionarios)
-{
-    FILE *arquivo;
-    int i;
-    arquivo = fopen(funcionarios, "w");
-
-    if (arquivo == NULL)
-    {
-        perror("Erro ao abrir o arquivo para salvar");
-        return;
-    }
-
-    fprintf(arquivo, "%d\n", num_usuarios);
-    for (i = 0; i < num_usuarios; i++)
-    {
-        fprintf(arquivo, "%s,%d,%d,%s,%s\n", lista[i].nome, lista[i].senha, lista[i].idade, lista[i].cargo, lista[i].email);
-    }
-    fclose(arquivo);
-}
-
-int carregarfuncionarios(funcionario **lista, const char *funcionarios)
-{
-    FILE *arquivo;
-    int FuncionariosArquivados = 0;
-
-    arquivo = fopen(funcionarios, "r");
-    if (arquivo == NULL)
-    {
-        return 0;
-    }
-
-    if (fscanf(arquivo, "%d\n", &FuncionariosArquivados) != 1)
-    {
-        fclose(arquivo);
-        return 0;
-    }
-
-    if (FuncionariosArquivados <= 0)
-    {
-        fclose(arquivo);
-        return 0;
-    }
-
-    *lista = (funcionario *)malloc(FuncionariosArquivados * sizeof(funcionario));
-    if (*lista == NULL)
-    {
-        fclose(arquivo);
-        return 0;
-    }
-
-    for (int i = 0; i < FuncionariosArquivados; i++)
-    {
-        if (fscanf(arquivo, "%[^,],%d,%d,%[^,],%[^\n]\n", (*lista)[i].nome, &(*lista)[i].senha, &(*lista)[i].idade, (*lista)[i].cargo, (*lista)[i].email) != 5)
-        {
-            FuncionariosArquivados = i;
-            break;
-        }
-    }
-    fclose(arquivo);
-    return FuncionariosArquivados;
-}
-
-void pausarTerminal()
-{
-    printf("\nPressione ENTER para continuar...");
-    limparBufferEntrada();
-}
 
 int main(void)
 {
@@ -283,24 +131,28 @@ int main(void)
     int opcao_carro; 
     int access;
     char access_str[10];
+    
+    sqlite3 *db = NULL; 
 
     funcionario *lista_funcionarios = NULL; 
     carro *lista_carros = NULL; 
 
-    funcionarios = carregarfuncionarios(&lista_funcionarios, "funcionarios.txt");
+    inicializarBanco(&db);
+
+    funcionarios = carregarFuncionariosSQL(db, &lista_funcionarios);
     if (funcionarios > 0)
     {
-        printf("%d funcionarios carregados com sucesso do arquivo.\n", funcionarios);
+        printf("%d funcionarios carregados com sucesso do banco de dados.\n", funcionarios);
     }
     else
     {
         printf("Nenhum funcionario carregado. Iniciando com lista vazia.\n");
     }
 
-    carros = carregarCarros(&lista_carros, "carros.txt");
+    carros = carregarCarrosSQL(db, &lista_carros);
     if (carros > 0)
     {
-        printf("%d carros carregados com sucesso do arquivo.\n", carros);
+        printf("%d carros carregados com sucesso do banco de dados.\n", carros);
     }
     else
     {
@@ -374,7 +226,7 @@ int main(void)
                 case 2:
                     if (lista_funcionarios != NULL && funcionarios > 0)
                     {
-                        salvarFuncionarios(lista_funcionarios, funcionarios, "funcionarios.txt");
+                        salvarFuncionariosSQL(db, lista_funcionarios, funcionarios);
                         printf("Dados salvos com sucesso!\n");
                         pausarTerminal();
                     }
@@ -390,7 +242,7 @@ int main(void)
                         free(lista_funcionarios);
                         lista_funcionarios = NULL;
                     }
-                    funcionarios = carregarfuncionarios(&lista_funcionarios, "funcionarios.txt");
+                    funcionarios = carregarFuncionariosSQL(db, &lista_funcionarios);
                     if (funcionarios > 0)
                     {
                         printf("%d funcionarios carregados com sucesso!\n", funcionarios);
@@ -398,7 +250,7 @@ int main(void)
                     }
                     else
                     {
-                        printf("Erro ao carregar os dados ou arquivo nao encontrado.\n");
+                        printf("Erro ao carregar os dados ou banco de dados vazio.\n");
                         pausarTerminal();
                     }
                     break;
@@ -500,7 +352,8 @@ int main(void)
                 case 2:
                     if (lista_carros != NULL && carros > 0)
                     {
-                        salvarCarros(lista_carros, carros, "carros.txt");
+                        // CHAMA A FUNÇÃO SQL DE SALVAR
+                        salvarCarrosSQL(db, lista_carros, carros);
                         printf("Dados salvos com sucesso!\n");
                         pausarTerminal();
                     }
@@ -516,7 +369,8 @@ int main(void)
                         free(lista_carros);
                         lista_carros = NULL;
                     }
-                    carros = carregarCarros(&lista_carros, "carros.txt");
+                    // CHAMA A FUNÇÃO SQL DE CARREGAR
+                    carros = carregarCarrosSQL(db, &lista_carros);
                     if (carros > 0)
                     {
                         printf("%d carros carregados com sucesso!\n", carros);
@@ -524,7 +378,7 @@ int main(void)
                     }
                     else
                     {
-                        printf("Erro ao carregar dados ou arquivo nao encontrado.\n");
+                        printf("Erro ao carregar dados ou banco de dados vazio.\n");
                         pausarTerminal();
                     }
                     break;
@@ -569,6 +423,8 @@ int main(void)
     {
         free(lista_carros);
     }
+    
+    sqlite3_close(db);
 
     return 0;
 }
